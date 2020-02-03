@@ -1,1 +1,1 @@
-# NextGen_hl7
+# NextGen Mirth
