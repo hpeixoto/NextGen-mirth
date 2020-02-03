@@ -1,0 +1,48 @@
+version: '2'
+
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    ports:
+      - 9000:9000
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./data/portainer_data:/data"
+
+  nextgendb:
+    container_name: nextgendb
+    image: mysql:5.6
+    restart: always
+    command: mysqld --innodb-buffer-pool-size=20M
+    volumes:
+      - "./data/nextgendb:/var/lib/mysql:rw"
+      - "./data/nextgendb/mensagens:/mnt/mensagens:rw"
+    environment:
+      - "MYSQL_DATABASE=mirthdb"
+      - "MYSQL_USER=mirth"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
+    ports:
+      - 3311:3306
+
+  nextgen:
+    container_name: nextgen
+    restart: always
+    build: mirth-connect
+    image: fabrom/mirth-connect
+    volumes:
+      - "./mirth-connect/mirth.properties:/opt/mirth-connect/conf/mirth.properties:rw"
+      - "./data/spool_nextgen/:/var/spool/mirth/:rw"
+      - "./data/envia/:/envia/:rw"
+    ports:
+      - 8080:8080
+      - 8443:8443
+      - 6661:6661
+      - 6662:6662
+    links:
+      - nextgendb
+    depends_on:
+      - nextgendb
